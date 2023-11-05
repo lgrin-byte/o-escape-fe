@@ -5,10 +5,12 @@ import Header from "@/components/common/Header/Header";
 import { useGetThemeList } from "@/queries/getThemeList";
 import { useCurrentTheme } from "@/components/atoms/currentTheme.atom";
 import { useRouter } from "next/navigation";
+
 import * as S from "@/home/HomeView.styled";
 import { useIsLoggedInValue } from "@/components/atoms/account.atom";
 import MainDrawer from "@/components/common/Drawer/Drawer";
 import Mobile from "../Mobile/Mobile";
+import { useIsMobileValue } from "../atoms/mobile.atom";
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -20,8 +22,9 @@ function RequireAuth({
   const isLoggedIn = useIsLoggedInValue();
   const [currentTheme, setCurrentTheme] = useCurrentTheme();
   const router = useRouter();
+  const isMobileState = useIsMobileValue();
+
   const [isMobile, setIsMobile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const { data: categories = [] } = useGetThemeList();
 
   useEffect(() => {
@@ -29,8 +32,7 @@ function RequireAuth({
       const { userAgent } = window.navigator;
       const mobileRegex =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i;
-      setIsMobile(mobileRegex.test(userAgent));
-      setIsLoading(false);
+      if (isMobileState) setIsMobile(mobileRegex.test(userAgent));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -50,15 +52,11 @@ function RequireAuth({
     }
   }, [isLoggedIn, currentTheme, router]);
 
-  if (isLoading) {
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <></>;
-  }
-
   if (isMobile) return <Mobile />;
 
   // eslint-disable-next-line react/jsx-no-useless-fragment
   if (!isLoggedIn) return <>{children}</>;
+
   return (
     <S.Wrapper>
       <MainDrawer {...{ categories }} />
